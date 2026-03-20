@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College Park Money Madness</title>
+<meta name="description" content="Who got the bag? Follow the money through College Park's spending bracket.">
+<meta property="og:title" content="College Park Money Madness">
+<meta property="og:description" content="Who got the bag? Follow the money through College Park's vendor spending.">
+<style>
+/* ============ RESET & BASE ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1a1a1a;
+  --border: #2a2a2a;
+  --text: #e8e8e8;
+  --text-dim: #888;
+  --text-muted: #555;
+  --red: #e63946;
+  --red-glow: rgba(230, 57, 70, 0.3);
+  --gold: #f4a261;
+  --gold-glow: rgba(244, 162, 97, 0.3);
+  --green: #2a9d8f;
+  --winner-bg: rgba(244, 162, 97, 0.08);
+  --loser-bg: rgba(255, 255, 255, 0.02);
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ============ HERO ============ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, var(--red-glow) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, var(--gold-glow) 0%, transparent 50%);
+  opacity: 0.4;
+  animation: heroPulse 6s ease-in-out infinite alternate;
+}
+
+@keyframes heroPulse {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.6; }
+}
+
+.hero-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--red);
+  border: 1px solid var(--red);
+  padding: 0.4rem 1.2rem;
+  border-radius: 2px;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0.5rem;
+}
+
+.hero h1 .money { color: var(--gold); }
+.hero h1 .madness { color: var(--red); }
+
+.hero-subtitle {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 3vw, 1.6rem);
+  color: var(--text-dim);
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-explainer {
+  max-width: 600px;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cta-btn {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--gold);
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.cta-btn:hover {
+  background: var(--red);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px var(--red-glow);
+}
+
+/* ============ BRACKET SECTION ============ */
+.bracket-section {
+  padding: 3rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.section-header p {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+/* Desktop bracket */
+.bracket-container {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .bracket-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    gap: 0;
+    align-items: center;
+    position: relative;
+  }
+}
+
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 0 0.5rem;
+}
+
+.bracket-round.round-semis {
+  gap: 8rem;
+}
+
+.bracket-round.round-final {
+  gap: 0;
+}
+
+.round-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.bracket-matchup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 220px;
+}
+
+.bracket-matchup:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px var(--gold-glow);
+  transform: scale(1.02);
+}
+
+.bracket-matchup.upcoming {
+  animation: matchupPulse 2s ease-in-out infinite;
+}
+
+@keyframes matchupPulse {
+  0%, 100% { border-color: var(--border); box-shadow: none; }
+  50% { border-color: var(--red); box-shadow: 0 0 15px var(--red-glow); }
+}
+
+.matchup-seed {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+  gap: 0.6rem;
+  transition: background 0.3s;
+}
+
+.matchup-seed + .matchup-seed {
+  border-top: 1px solid var(--border);
+}
+
+.matchup-seed.winner {
+  background: var(--winner-bg);
+}
+
+.matchup-seed.loser {
+  opacity: 0.35;
+}
+
+.seed-num {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  width: 1.4rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.seed-name {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seed-amount {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.winner .seed-name { color: var(--gold); }
+
+/* Connector lines */
+.bracket-connectors {
+  width: 40px;
+  position: relative;
+}
+
+/* Mobile bracket */
+.bracket-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .bracket-mobile { display: none; }
+}
+
+.mobile-round-header {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--red);
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-top: 1rem;
+}
+
+.mobile-matchup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mobile-matchup:active {
+  transform: scale(0.98);
+}
+
+.mobile-matchup.upcoming {
+  animation: matchupPulse 2s ease-in-out infinite;
+}
+
+.mobile-seed {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  gap: 0.8rem;
+}
+
+.mobile-seed + .mobile-seed {
+  border-top: 1px solid var(--border);
+}
+
+.mobile-seed.winner { background: var(--winner-bg); }
+.mobile-seed.loser { opacity: 0.35; }
+
+.mobile-seed .seed-num {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  width: 1.5rem;
+}
+
+.mobile-seed .seed-name {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.mobile-seed .seed-amount {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+
+.mobile-seed.winner .seed-name { color: var(--gold); }
+
+.matchup-tap-hint {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0.4rem;
+  background: var(--surface2);
+}
+
+/* ============ ARENA MODAL ============ */
+.arena-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.arena-overlay.active {
+  display: flex;
+}
+
+.arena {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.arena-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.arena-round-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.arena-close {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 1.2rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.arena-close:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.arena-fighters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  position: relative;
+}
+
+@media (max-width: 600px) {
+  .arena-fighters {
+    grid-template-columns: 1fr;
+  }
+}
+
+.arena-vs {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--red);
+  background: var(--bg);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 2px solid var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+@media (max-width: 600px) {
+  .arena-vs {
+    position: relative;
+    margin: -1rem auto;
+    top: auto;
+    left: auto;
+    transform: none;
+  }
+}
+
+.fighter-card {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.fighter-card:first-child {
+  border-right: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .fighter-card:first-child {
+    border-right: none;
+  }
+}
+
+.fighter-card.arena-winner {
+  background: var(--winner-bg);
+}
+
+.fighter-name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.fighter-alias {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.8rem;
+}
+
+.fighter-amount {
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 1rem;
+}
+
+.fighter-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.fighter-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.fighter-stat-label { color: var(--text-dim); }
+.fighter-stat-value { font-family: var(--font-mono); font-weight: 500; }
+
+.fighter-flags {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.flag-tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  background: rgba(230, 57, 70, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(230, 57, 70, 0.3);
+}
+
+/* Commentary ticker */
+.arena-commentary {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: var(--surface);
+  min-height: 200px;
+  max-height: 300px;
+}
+
+.commentary-line {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.5s ease;
+}
+
+.commentary-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.commentary-line .highlight {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.commentary-line .red {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.commentary-line .mono {
+  font-family: var(--font-mono);
+  color: var(--gold);
+}
+
+/* Winner banner */
+.winner-banner {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(244, 162, 97, 0.15), rgba(230, 57, 70, 0.15));
+  border-top: 2px solid var(--gold);
+  gap: 1rem;
+  animation: bannerSlam 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.winner-banner.active {
+  display: flex;
+}
+
+@keyframes bannerSlam {
+  0% { transform: scaleY(0); opacity: 0; }
+  60% { transform: scaleY(1.1); }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+.winner-trophy { font-size: 2rem; }
+
+.winner-text {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.winner-text .name { color: var(--gold); }
+
+.arena-footer {
+  padding: 0.8rem 1.5rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.arena-nav-btn {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.6rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.arena-nav-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ============ STATS BAR ============ */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  padding: 0 1rem;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.stat-number {
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+}
+
+/* ============ FOOTER ============ */
+.site-footer {
+  max-width: 800px;
+  margin: 4rem auto 0;
+  padding: 3rem 1.5rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.footer-about h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-dim);
+}
+
+.footer-about p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.footer-about a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.footer-about a:hover {
+  text-decoration: underline;
+}
+
+.footer-brand {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.footer-brand-name {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+.footer-brand-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ============ UTILITY ============ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero" id="hero">
+  <div class="hero-badge">Open Records Investigation</div>
+  <h1>College Park<br><span class="money">Money</span> <span class="madness">Madness</span></h1>
+  <p class="hero-subtitle">Who got the bag? Follow the money.</p>
+  <p class="hero-explainer">
+    The City of College Park spent over <strong>$1.6 million</strong> with a handful of vendors between 2023 and 2024.
+    We pulled the invoices, ran the numbers, and seeded the bracket. Eight vendors enter.
+    One walks away with the crown. Tap any matchup to watch them go head to head
+    and find out who walked away with your tax dollars.
+  </p>
+  <button class="cta-btn" onclick="document.getElementById('bracket').scrollIntoView({behavior:'smooth'})">
+    Enter the Bracket
+  </button>
+</section>
+
+<!-- ==================== STATS BAR ==================== -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-number" id="stat-total">$0</div>
+    <div class="stat-label">Total Tracked Spending</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number" id="stat-vendors">0</div>
+    <div class="stat-label">Vendors in the Bracket</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number" id="stat-invoices">0</div>
+    <div class="stat-label">Invoices Analyzed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number" id="stat-flags">0</div>
+    <div class="stat-label">Red Flags Found</div>
+  </div>
+</div>
+
+<!-- ==================== BRACKET ==================== -->
+<section class="bracket-section" id="bracket">
+  <div class="section-header">
+    <h2>The Bracket</h2>
+    <p>Tap any matchup to enter the arena</p>
+  </div>
+
+  <!-- Desktop bracket -->
+  <div class="bracket-container" id="desktopBracket"></div>
+
+  <!-- Mobile bracket -->
+  <div class="bracket-mobile" id="mobileBracket"></div>
+</section>
+
+<!-- ==================== ARENA MODAL ==================== -->
+<div class="arena-overlay" id="arenaOverlay">
+  <div class="arena" id="arena">
+    <div class="arena-header">
+      <span class="arena-round-label" id="arenaRoundLabel">Quarterfinal</span>
+      <button class="arena-close" onclick="closeArena()" aria-label="Close">&times;</button>
+    </div>
+    <div class="arena-fighters" id="arenaFighters"></div>
+    <div class="arena-commentary" id="arenaCommentary"></div>
+    <div class="winner-banner" id="winnerBanner">
+      <span class="winner-trophy">&#127942;</span>
+      <span class="winner-text"><span class="name" id="winnerName"></span> advances!</span>
+    </div>
+    <div class="arena-footer">
+      <button class="arena-nav-btn" id="arenaStartBtn" onclick="startCommentary()">Start Matchup</button>
+      <button class="arena-nav-btn" id="arenaBackBtn" onclick="closeArena()" style="display:none">Back to Bracket</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="site-footer">
+  <div class="footer-about">
+    <h3>About This Data</h3>
+    <p>
+      All figures come from invoices obtained through open records requests to the City of College Park, Georgia.
+      This bracket represents vendors who received significant payments from city funds between 2023 and 2024.
+      Some invoice descriptions were redacted by the city before release. Where data is missing, we say so.
+    </p>
+    <p>
+      Want the full breakdown? Visit <a href="https://cpmoneytrail.com" target="_blank" rel="noopener">cpmoneytrail.com</a>
+      for the complete investigation with source documents.
+    </p>
+  </div>
+  <div class="footer-brand">
+    <div class="footer-brand-name">College Park Unmuted</div>
+    <div class="footer-brand-tag">Stay Informed. Stay United.</div>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+//  DATA — All vendors, matchups, and commentary live here
+// ============================================================
+
+const VENDORS = {
+  denmark: {
+    name: "Denmark Ashby LLC",
+    alias: "Winston A. Denmark, Principal Attorney",
+    amount: 847293.93,
+    category: "Legal Services",
+    connection: "City Attorney (contracted)",
+    invoiceCount: 23,
+    flags: ["52% rate hike in 18 months", "Systematic redaction of descriptions", "$136K single month peak", "Subcontractors billed through firm"],
+    stats: [
+      { label: "Category", value: "Legal / Litigation" },
+      { label: "Timespan", value: "Aug 2023 \u2013 Dec 2024" },
+      { label: "Invoices", value: "23" },
+      { label: "Peak Month", value: "$136K (Nov 2024)" },
+      { label: "Rate", value: "$165 \u2192 $250/hr" },
+      { label: "PO Total", value: "$1.46M authorized" }
+    ]
+  },
+  rsw: {
+    name: "RSW Services",
+    alias: "",
+    amount: 468434,
+    category: "Professional Services",
+    connection: "",
+    invoiceCount: 14,
+    flags: ["58\u00A2 of every dollar in its category", "Bulk invoicing patterns"],
+    stats: [
+      { label: "Category", value: "Professional Services" },
+      { label: "Timespan", value: "2023 \u2013 2024" },
+      { label: "Invoices", value: "14" },
+      { label: "Avg Invoice", value: "$33,460" }
+    ]
+  },
+  holly: {
+    name: "Holly Rodriguez",
+    alias: "",
+    amount: 40790,
+    category: "Community Enhancements",
+    connection: "Ward 1",
+    invoiceCount: 6,
+    flags: ["All contracts tied to Ward 1", "Community enhancement spending"],
+    stats: [
+      { label: "Category", value: "Community Enhancements" },
+      { label: "Ward", value: "Ward 1" },
+      { label: "Invoices", value: "6" },
+      { label: "Avg Invoice", value: "$6,798" }
+    ]
+  },
+  csi: {
+    name: "CSI Crane",
+    alias: "Crisis Communications firm",
+    amount: 24140,
+    category: "Crisis PR",
+    connection: "Billed through Denmark Ashby",
+    invoiceCount: 1,
+    flags: ["70 hours at $280/hr", "Billed through law firm", "Single invoice"],
+    stats: [
+      { label: "Category", value: "Crisis Communications" },
+      { label: "Rate", value: "$280/hr" },
+      { label: "Hours", value: "70" },
+      { label: "Invoices", value: "1" },
+      { label: "Routed Through", value: "Denmark Ashby LLC" }
+    ]
+  },
+  arlong: {
+    name: "A.R. Long Company",
+    alias: "",
+    amount: 18000,
+    category: "Unknown",
+    connection: "Billed through Denmark Ashby",
+    invoiceCount: 3,
+    flags: ["No description on any invoice", "One invoice marked HOLD in red", "Billed through law firm"],
+    stats: [
+      { label: "Category", value: "Unknown" },
+      { label: "Invoices", value: "3" },
+      { label: "Per Invoice", value: "$6,000 each" },
+      { label: "Routed Through", value: "Denmark Ashby LLC" },
+      { label: "Descriptions", value: "None provided" }
+    ]
+  },
+  lexicon: {
+    name: "Lexicon Strategies",
+    alias: "NYC-based firm",
+    amount: 15000,
+    category: "Strategy Development",
+    connection: "Billed through Denmark Ashby",
+    invoiceCount: 2,
+    flags: ["NYC firm for a small GA city", "Vague 'Strategy Development' label", "Billed through law firm"],
+    stats: [
+      { label: "Category", value: "Strategy Development" },
+      { label: "Location", value: "New York City" },
+      { label: "Invoices", value: "2" },
+      { label: "Per Invoice", value: "$7,500 each" },
+      { label: "Routed Through", value: "Denmark Ashby LLC" }
+    ]
+  },
+  capitol: {
+    name: "Capitol Strategies",
+    alias: "Lobbying firm",
+    amount: 9999.99,
+    category: "Consulting / Lobbying",
+    connection: "Billed through Denmark Ashby",
+    invoiceCount: 1,
+    flags: ["Lobbying billed through law firm", "$9,999.99 \u2014 one penny under $10K", "Single invoice"],
+    stats: [
+      { label: "Category", value: "Lobbying / Consulting" },
+      { label: "Invoices", value: "1" },
+      { label: "Amount", value: "$9,999.99" },
+      { label: "Routed Through", value: "Denmark Ashby LLC" }
+    ]
+  },
+  starkey: {
+    name: "Starkey Law Group",
+    alias: "Internal investigations",
+    amount: 8795,
+    category: "Internal Investigation",
+    connection: "Billed through Denmark Ashby",
+    invoiceCount: 1,
+    flags: ["$500/hr rate", "Departmental investigation", "Billed through law firm"],
+    stats: [
+      { label: "Category", value: "Internal Investigation" },
+      { label: "Rate", value: "$500/hr" },
+      { label: "Invoices", value: "1" },
+      { label: "Routed Through", value: "Denmark Ashby LLC" }
+    ]
+  }
+};
+
+// Bracket matchups — seeds 1-8 by total amount
+const MATCHUPS = [
+  // Quarterfinals (Round 1)
+  {
+    id: "qf1",
+    round: "Quarterfinal",
+    roundNum: 1,
+    vendor1: "denmark",
+    vendor2: "starkey",
+    winner: "denmark",
+    commentary: [
+      'Ladies and gentlemen, your <span class="red">number one seed</span>. <span class="highlight">Denmark Ashby LLC</span> walks in like they own the building. And honestly? At <span class="mono">$847,293</span> across 23 invoices, they might.',
+      'In the other corner, looking like they showed up to the wrong tournament: <span class="highlight">Starkey Law Group</span>. One invoice. <span class="mono">$8,795</span>. Billed at <span class="red">$500 an hour</span> for an internal investigation. Sir, that\'s more than most people\'s car note. Per hour.',
+      'Plot twist: Starkey didn\'t even bill the city directly. That invoice was <span class="red">routed through Denmark Ashby</span>. That\'s right. The law firm hired its own investigator and said "put it on the city\'s tab." Like ordering bottle service at a club you don\'t own.',
+      'Meanwhile, Denmark gave themselves a raise from $165 to $250 an hour. A <span class="red">52% increase</span>. No public vote. No council discussion. Just vibes and audacity.',
+      'November 2024 alone? <span class="mono">$136,000</span> in a single month. That\'s a whole house in College Park. In 30 days. For legal advice. Allegedly.',
+      'The ref checks the invoices, checks them again, puts on reading glasses, and... <span class="red">yeah, this was a mercy rule situation from the jump</span>.'
+    ]
+  },
+  {
+    id: "qf2",
+    round: "Quarterfinal",
+    roundNum: 1,
+    vendor1: "rsw",
+    vendor2: "capitol",
+    winner: "rsw",
+    commentary: [
+      '<span class="highlight">RSW Services</span> rolls in with <span class="mono">$468,434</span>. That\'s 58 cents of every professional services dollar. Almost sixty percent. RSW didn\'t come to play. RSW came to <span class="red">eat</span>.',
+      'And here comes <span class="highlight">Capitol Strategies</span> with... <span class="mono">$9,999.99</span>. A lobbying firm. Read that number again. Nine thousand, nine hundred ninety-nine dollars. And <span class="red">ninety-nine cents</span>.',
+      'Now why would a grown, professional lobbying firm bill exactly one penny under $10,000? Could it be that many jurisdictions require additional disclosure for contracts at $10K or above? <span class="red">Nah, must be a coincidence.</span> They probably just really liked that number.',
+      'Oh, and it wasn\'t billed to the city directly. It was <span class="red">routed through Denmark Ashby</span>. The law firm. Because apparently the legal budget is an all-you-can-eat buffet and everybody got a plate.',
+      'RSW is operating at a whole different altitude. 14 invoices. Averaging over $33,000 each. That\'s a Kia Forte every time they send a bill.',
+      'Capitol Strategies put up a creative fight with that penny trick, but <span class="red">you can\'t beat volume with vibes</span>. RSW advances.'
+    ]
+  },
+  {
+    id: "qf3",
+    round: "Quarterfinal",
+    roundNum: 1,
+    vendor1: "holly",
+    vendor2: "lexicon",
+    winner: "holly",
+    commentary: [
+      '<span class="highlight">Holly Rodriguez</span> steps up with <span class="mono">$40,790</span> in community enhancements. Every single contract tied to <span class="red">Ward 1</span>. All of them. Every one. Just Ward 1. Nobody else\'s ward. Just that one.',
+      'Facing off: <span class="highlight">Lexicon Strategies</span>. <span class="mono">$15,000</span>. A firm based in <span class="red">New York City</span> doing "Strategy Development" for College Park, Georgia. Population: 15,000. You know, a town that famously needs Manhattan consultants.',
+      'Two invoices from Lexicon. $7,500 each. Both billed through Denmark Ashby. Both with the exact same description: <span class="red">"Strategy Development."</span> That\'s it. That\'s the description. Two words. Fifteen thousand dollars.',
+      'What strategy? What development? For whom? The invoices don\'t say. The city hasn\'t said. Nobody has said. It\'s giving "trust me bro" energy at a <span class="red">government level</span>.',
+      'Holly\'s $40K at least has a category. Community enhancements. In Ward 1. Exclusively in Ward 1. Did we mention it was all in Ward 1? Because <span class="red">it was all in Ward 1</span>.',
+      'Lexicon tried, but it\'s hard to win a fight when nobody can explain why you were in the building. <span class="red">Holly Rodriguez advances.</span>'
+    ]
+  },
+  {
+    id: "qf4",
+    round: "Quarterfinal",
+    roundNum: 1,
+    vendor1: "csi",
+    vendor2: "arlong",
+    winner: "csi",
+    commentary: [
+      '<span class="highlight">CSI Crane</span> enters the arena. Crisis communications. <span class="mono">$24,140</span>. One invoice. Seventy hours. At $280 an hour. Somebody had a <span class="red">really bad month</span>.',
+      'On the other side: <span class="highlight">A.R. Long Company</span>. <span class="mono">$18,000</span>. Three invoices. $6,000 each. Clean. Round. Suspicious.',
+      'Let\'s talk about CSI Crane. A crisis PR firm. Seventy hours of crisis management. What was the crisis? <span class="red">Excellent question.</span> We\'d love to know. The invoices don\'t say. The city won\'t say. Somebody called the spin doctors and told them to bring a lunch because it was a <span class="red">ten-day job</span>.',
+      'Now A.R. Long. What do they do? Great question. Nobody knows. <span class="red">Not one of their three invoices has a description.</span> Nothing. Zero words. Just "$6,000" three times like a chant. Like a prayer. Like a direct deposit with no explanation.',
+      'And one of those invoices? Marked <span class="red">HOLD in red ink</span>. Somebody at the city looked at a blank invoice for $6,000 from a company that does... nothing... and said "wait a minute." We don\'t know who. We don\'t know why. But somebody had a moment of clarity.',
+      'Both billed through Denmark Ashby, because of course they were. CSI Crane takes it. <span class="red">$24,140 to manage a crisis nobody will name.</span> You can\'t make this up. Well, you could, but you wouldn\'t have to.'
+    ]
+  },
+  // Semifinals (Round 2)
+  {
+    id: "sf1",
+    round: "Semifinal",
+    roundNum: 2,
+    vendor1: "denmark",
+    vendor2: "csi",
+    winner: "denmark",
+    commentary: [
+      'The heavyweight champion is back. <span class="highlight">Denmark Ashby</span> at <span class="mono">$847,293</span> versus... <span class="highlight">CSI Crane</span>, at <span class="mono">$24,140</span>. Their own subcontractor. This is like watching someone fight their own shadow. <span class="red">And the shadow still loses.</span>',
+      'Here\'s the thing. CSI Crane\'s crisis PR bill? It\'s <span class="red">already inside Denmark Ashby\'s total</span>. That $24K is a line item on Denmark\'s tab. This firm didn\'t just bill for legal work. They became the <span class="red">Amazon Prime of government spending</span>. Everything ships through them.',
+      'Crisis PR? Through Denmark. Lobbying? Through Denmark. Strategy consulting from NYC? Through Denmark. Internal investigations? You guessed it. <span class="red">Through Denmark.</span> This law firm had more subsidiaries than a Fortune 500 company.',
+      'And starting in 2024, the billing descriptions got <span class="red">systematically redacted</span>. Before that, you could at least read what they were charging for. After? Blacked out like a CIA document. Except this isn\'t national security. It\'s <span class="red">a city of 15,000 people</span>.',
+      'The single largest line item? $10,146 for the "Personnel Tyrone Dumas" matter. <span class="red">Fully redacted.</span> Ten thousand dollars for something nobody is allowed to read about. The mystery novel writes itself.',
+      '<span class="red">Denmark Ashby advances.</span> CSI Crane never had a chance. You can\'t beat the boss when you\'re on the boss\'s payroll.'
+    ]
+  },
+  {
+    id: "sf2",
+    round: "Semifinal",
+    roundNum: 2,
+    vendor1: "rsw",
+    vendor2: "holly",
+    winner: "rsw",
+    commentary: [
+      '<span class="highlight">RSW Services</span> brings <span class="mono">$468,434</span> to the semifinal. <span class="highlight">Holly Rodriguez</span> counters with <span class="mono">$40,790</span>. Respectfully, Holly, this is like bringing a water gun to a tsunami.',
+      'RSW is a volume machine. 14 invoices. Consistent billing. Professional services stacking up like Tetris blocks. They didn\'t even have to try hard. They just kept sending invoices and the city just kept <span class="red">saying yes</span>.',
+      'Holly\'s contracts are smaller but concentrated. <span class="red">Every dollar tied to Ward 1.</span> All community enhancements. All one ward. At this point, Ward 1 has its own personal vendor. Like a ward concierge. <span class="red">"How may I enhance your community today?"</span>',
+      'The question with Holly isn\'t the amount. It\'s the GPS coordinates. When every contract in your portfolio has the same zip code, people start to wonder if "community enhancement" is code for <span class="red">"I know somebody on the council."</span>',
+      'But RSW? RSW is playing a different sport entirely. Nearly <span class="red">half a million dollars</span> in professional services. That\'s a Chick-fil-A franchise. That\'s a starter home in Buckhead. That\'s a whole small business.',
+      '<span class="red">RSW advances to the championship.</span> Holly put up a fight, but you can\'t out-hustle almost half a million dollars. The bag was too heavy.'
+    ]
+  },
+  // Final
+  {
+    id: "final",
+    round: "Championship",
+    roundNum: 3,
+    vendor1: "denmark",
+    vendor2: "rsw",
+    winner: "denmark",
+    commentary: [
+      'The championship. The main event. The one you came for. <span class="highlight">Denmark Ashby LLC</span> at <span class="mono">$847,293</span> versus <span class="highlight">RSW Services</span> at <span class="mono">$468,434</span>. Combined? <span class="red">Over $1.3 million.</span> Two vendors. In a city with one Walmart.',
+      'RSW brought serious heat. Nearly half a million in professional services. Most vendors would retire on that. Frame the check. Buy a boat. But Denmark Ashby looked at RSW\'s numbers and said <span class="red">"that\'s cute."</span>',
+      'Because Denmark didn\'t just bill the city. Denmark built an <span class="red">empire</span>. A law firm that hired its own PR team, its own lobbyist, its own NYC strategy consultants, and its own internal investigator. All billed to College Park. It\'s like ordering DoorDash for the whole office and putting it on the company card. Except the company is <span class="red">a city government</span>.',
+      'The rate jumped from $165 to $250 an hour. A 52% raise. No vote. No discussion. Just a new number on the invoice. If you tried that at your job, HR would escort you out. Here? <span class="red">They authorized $1.46 million in purchase orders.</span>',
+      'And the billing descriptions? Started out detailed. Then in 2024... <span class="red">redacted</span>. Blacked out. Gone. Like someone realized "oh wait, people might actually read these" and hit the panic button. The <span class="red">$10,146 Tyrone Dumas matter</span>? Biggest line item on any invoice. Fully redacted. We\'ll just have to use our imagination.',
+      'Let\'s put it in perspective. This one law firm billed more in 18 months than most College Park residents will earn in <span class="red">a decade</span>. More than a teacher\'s salary times ten. More than the median home price. For legal advice. And lobbying. And crisis PR. And whatever A.R. Long does. Which is still, to this day, <span class="red">nobody knows</span>.',
+      '<span class="mono">$847,293.93.</span> Down to the penny. <span class="red">Denmark Ashby LLC is your Money Madness champion.</span> The real question isn\'t who won. It\'s who lost. And the answer is the taxpayers of College Park, Georgia. Every single time.'
+    ]
+  }
+];
+
+// ============================================================
+//  RENDER FUNCTIONS
+// ============================================================
+
+function formatMoney(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
+  return '$' + n.toLocaleString();
+}
+
+function formatMoneyFull(n) {
+  return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+// Seed order by amount descending
+const seedOrder = Object.keys(VENDORS).sort((a, b) => VENDORS[b].amount - VENDORS[a].amount);
+const seedMap = {};
+seedOrder.forEach((key, i) => { seedMap[key] = i + 1; });
+
+function renderStats() {
+  const totalSpent = Object.values(VENDORS).reduce((s, v) => s + v.amount, 0);
+  const totalInvoices = Object.values(VENDORS).reduce((s, v) => s + v.invoiceCount, 0);
+  const totalFlags = Object.values(VENDORS).reduce((s, v) => s + v.flags.length, 0);
+
+  animateNumber('stat-total', totalSpent, true);
+  animateNumber('stat-vendors', Object.keys(VENDORS).length, false);
+  animateNumber('stat-invoices', totalInvoices, false);
+  animateNumber('stat-flags', totalFlags, false);
+}
+
+function animateNumber(elId, target, isMoney) {
+  const el = document.getElementById(elId);
+  const duration = 1500;
+  const start = performance.now();
+  function update(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(target * eased);
+    el.textContent = isMoney ? formatMoneyFull(current) : current.toLocaleString();
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function buildMatchupHTML(matchup, isMobile) {
+  const v1 = VENDORS[matchup.vendor1];
+  const v2 = VENDORS[matchup.vendor2];
+  const s1 = seedMap[matchup.vendor1];
+  const s2 = seedMap[matchup.vendor2];
+  const isComplete = !!matchup.winner;
+  const w = matchup.winner;
+
+  const seedClass = (key) => {
+    if (!isComplete) return '';
+    return key === w ? 'winner' : 'loser';
+  };
+
+  if (isMobile) {
+    return `
+      <div class="mobile-matchup ${isComplete ? '' : 'upcoming'}" onclick="openArena('${matchup.id}')">
+        <div class="mobile-seed ${seedClass(matchup.vendor1)}">
+          <span class="seed-num">${s1}</span>
+          <span class="seed-name">${v1.name}</span>
+          <span class="seed-amount">${formatMoney(v1.amount)}</span>
+        </div>
+        <div class="mobile-seed ${seedClass(matchup.vendor2)}">
+          <span class="seed-num">${s2}</span>
+          <span class="seed-name">${v2.name}</span>
+          <span class="seed-amount">${formatMoney(v2.amount)}</span>
+        </div>
+        <div class="matchup-tap-hint">TAP TO ENTER ARENA</div>
+      </div>`;
+  }
+
+  return `
+    <div class="bracket-matchup ${isComplete ? '' : 'upcoming'}" onclick="openArena('${matchup.id}')">
+      <div class="matchup-seed ${seedClass(matchup.vendor1)}">
+        <span class="seed-num">${s1}</span>
+        <span class="seed-name">${v1.name}</span>
+        <span class="seed-amount">${formatMoney(v1.amount)}</span>
+      </div>
+      <div class="matchup-seed ${seedClass(matchup.vendor2)}">
+        <span class="seed-num">${s2}</span>
+        <span class="seed-name">${v2.name}</span>
+        <span class="seed-amount">${formatMoney(v2.amount)}</span>
+      </div>
+    </div>`;
+}
+
+function renderDesktopBracket() {
+  const container = document.getElementById('desktopBracket');
+  const qf = MATCHUPS.filter(m => m.roundNum === 1);
+  const sf = MATCHUPS.filter(m => m.roundNum === 2);
+  const fin = MATCHUPS.filter(m => m.roundNum === 3);
+
+  container.innerHTML = `
+    <div class="bracket-round round-quarters">
+      <div class="round-label">Quarterfinals</div>
+      ${qf.map(m => buildMatchupHTML(m, false)).join('')}
+    </div>
+    <div class="bracket-connectors"></div>
+    <div class="bracket-round round-semis">
+      <div class="round-label">Semifinals</div>
+      ${sf.map(m => buildMatchupHTML(m, false)).join('')}
+    </div>
+    <div class="bracket-connectors"></div>
+    <div class="bracket-round round-final">
+      <div class="round-label">Championship</div>
+      ${fin.map(m => buildMatchupHTML(m, false)).join('')}
+    </div>
+  `;
+}
+
+function renderMobileBracket() {
+  const container = document.getElementById('mobileBracket');
+  const rounds = [
+    { label: "Quarterfinals", num: 1 },
+    { label: "Semifinals", num: 2 },
+    { label: "Championship", num: 3 }
+  ];
+
+  container.innerHTML = rounds.map(r => {
+    const matchups = MATCHUPS.filter(m => m.roundNum === r.num);
+    return `
+      <div class="mobile-round-header">${r.label}</div>
+      ${matchups.map(m => buildMatchupHTML(m, true)).join('')}
+    `;
+  }).join('');
+}
+
+// ============================================================
+//  ARENA
+// ============================================================
+
+let currentMatchup = null;
+let commentaryTimer = null;
+
+function openArena(matchupId) {
+  currentMatchup = MATCHUPS.find(m => m.id === matchupId);
+  if (!currentMatchup) return;
+
+  const v1 = VENDORS[currentMatchup.vendor1];
+  const v2 = VENDORS[currentMatchup.vendor2];
+
+  document.getElementById('arenaRoundLabel').textContent = currentMatchup.round;
+
+  // Build fighter cards
+  const fightersEl = document.getElementById('arenaFighters');
+  fightersEl.innerHTML = `
+    ${buildFighterCard(v1, currentMatchup.vendor1)}
+    <div class="arena-vs">VS</div>
+    ${buildFighterCard(v2, currentMatchup.vendor2)}
+  `;
+
+  // Clear commentary
+  const commentaryEl = document.getElementById('arenaCommentary');
+  commentaryEl.innerHTML = '';
+
+  // Reset winner banner
+  document.getElementById('winnerBanner').classList.remove('active');
+
+  // Show start button, hide back button
+  document.getElementById('arenaStartBtn').style.display = '';
+  document.getElementById('arenaStartBtn').textContent = 'Start Matchup';
+  document.getElementById('arenaBackBtn').style.display = 'none';
+
+  // Show overlay
+  document.getElementById('arenaOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function buildFighterCard(vendor, key) {
+  const isWinner = currentMatchup.winner === key;
+  return `
+    <div class="fighter-card ${isWinner ? 'arena-winner' : ''}">
+      <div class="fighter-name">${vendor.name}</div>
+      ${vendor.alias ? `<div class="fighter-alias">${vendor.alias}</div>` : ''}
+      <div class="fighter-amount">${formatMoneyFull(Math.round(vendor.amount))}</div>
+      <div class="fighter-stats">
+        ${(vendor.stats || []).map(s => `
+          <div class="fighter-stat">
+            <span class="fighter-stat-label">${s.label}</span>
+            <span class="fighter-stat-value">${s.value}</span>
+          </div>
+        `).join('')}
+        ${vendor.connection ? `
+          <div class="fighter-stat">
+            <span class="fighter-stat-label">Connection</span>
+            <span class="fighter-stat-value">${vendor.connection}</span>
+          </div>
+        ` : ''}
+      </div>
+      ${vendor.flags.length ? `
+        <div class="fighter-flags">
+          ${vendor.flags.map(f => `<span class="flag-tag">${f}</span>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function startCommentary() {
+  if (!currentMatchup) return;
+
+  const commentaryEl = document.getElementById('arenaCommentary');
+  commentaryEl.innerHTML = '';
+
+  document.getElementById('arenaStartBtn').style.display = 'none';
+
+  const lines = currentMatchup.commentary;
+  let i = 0;
+
+  if (commentaryTimer) clearInterval(commentaryTimer);
+
+  function addLine() {
+    if (i >= lines.length) {
+      clearInterval(commentaryTimer);
+      // Show winner
+      setTimeout(() => {
+        const winnerVendor = VENDORS[currentMatchup.winner];
+        document.getElementById('winnerName').textContent = winnerVendor.name;
+        document.getElementById('winnerBanner').classList.add('active');
+        document.getElementById('arenaBackBtn').style.display = '';
+      }, 600);
+      return;
+    }
+
+    const div = document.createElement('div');
+    div.className = 'commentary-line';
+    div.innerHTML = lines[i];
+    commentaryEl.appendChild(div);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        div.classList.add('visible');
+      });
+    });
+
+    // Auto-scroll
+    commentaryEl.scrollTop = commentaryEl.scrollHeight;
+    i++;
+  }
+
+  // First line immediately
+  addLine();
+  commentaryTimer = setInterval(addLine, 2200);
+}
+
+function closeArena() {
+  if (commentaryTimer) {
+    clearInterval(commentaryTimer);
+    commentaryTimer = null;
+  }
+  document.getElementById('arenaOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  currentMatchup = null;
+}
+
+// Close on escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeArena();
+});
+
+// Close on overlay click (not arena itself)
+document.getElementById('arenaOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeArena();
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+
+function init() {
+  renderDesktopBracket();
+  renderMobileBracket();
+
+  // Animate stats when visible
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        renderStats();
+        observer.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  observer.observe(document.querySelector('.stats-bar'));
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
